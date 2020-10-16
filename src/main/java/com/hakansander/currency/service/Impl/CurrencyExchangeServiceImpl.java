@@ -86,7 +86,7 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
         return CurrencyDateRangeResponseMapper.mapCurrencyDateRangeCurrencyResponse(response);
     }
 
-    public CurrencyResponse getCurrencyExchangeValues(String baseCurrency, String startDate, String endDate, boolean dummyFlag) {
+    public CurrencyResponseDto getCurrencyExchangeValues(String baseCurrency, String startDate, String endDate, boolean dummyFlag) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance().
                 scheme(SCHEME).host(HOST).
                 path(DATE_RANGE_PATH).
@@ -95,7 +95,16 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
                 query(QUERY_END_DATE).
                 buildAndExpand(baseCurrency, startDate, endDate);
 
-        return currencyServiceCall(uriComponents, baseCurrency);
+        RestTemplate restTemplate = new RestTemplate();
+
+        CurrencyDateRangeResponse response = null;
+        try {
+            response = restTemplate.getForObject(uriComponents.toString(), CurrencyDateRangeResponse.class);
+        } catch (Exception e) {
+            log.error("[currencyServiceCall] Exception occurred.", e);
+            throw new CurrencyFormatException("Currency format is invalid for the currency input " + baseCurrency);
+        }
+        return CurrencyDateRangeResponseMapper.mapCurrencyDateRangeCurrencyResponse(response);
     }
 
     private CurrencyResponse currencyServiceCall(UriComponents uriComponents, String baseCurrency) {

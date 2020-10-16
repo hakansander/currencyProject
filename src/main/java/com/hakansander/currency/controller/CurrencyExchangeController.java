@@ -2,8 +2,6 @@ package com.hakansander.currency.controller;
 
 import com.hakansander.currency.dto.CurrencyResponse.CurrencyResponseDto;
 import com.hakansander.currency.model.requestModels.CurrencyRangeRequestBody;
-import com.hakansander.currency.model.responseModels.CurrencyDateRangeResponse;
-import com.hakansander.currency.model.responseModels.CurrencyResponse;
 import com.hakansander.currency.service.CurrencyExchangeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -40,12 +38,9 @@ public class CurrencyExchangeController {
     }
 
     @GetMapping(value = "/{baseCurrency}", params = { "startDate", "endDate" })
-    public CurrencyResponse getCurrencyValuesForGivenRange(@PathVariable String baseCurrency,
+    public CurrencyResponseDto getCurrencyValuesForGivenRange(@PathVariable String baseCurrency,
                                                            @RequestParam(value = "startDate") String startDate,
                                                            @RequestParam(value = "endDate") String endDate) {
-
-        CurrencyResponse currencyResponse = currencyExchangeService.getCurrencyExchangeValues(baseCurrency, startDate, endDate, true);
-
-        return currencyResponse;
+        return currencyExchangeService.getCurrencyExchangeValues(baseCurrency, startDate, endDate, true);
     }
 }
