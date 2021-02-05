@@ -1,9 +1,12 @@
 package com.hakansander.currency.service.Impl;
 
+import com.hakansander.currency.dto.CurrencyResponse.CurrencyResponseDto;
 import com.hakansander.currency.exceptionHandling.CurrencyFormatException;
+import com.hakansander.currency.mapper.CurrencyDateRangeResponseMapper;
+import com.hakansander.currency.mapper.CurrencyResponseMapper;
 import com.hakansander.currency.model.requestModels.CurrencyRangeRequestBody;
-import com.hakansander.currency.model.responseModels.CurrencyServiceDateRangeResponse;
-import com.hakansander.currency.model.responseModels.CurrencyServiceResponse;
+import com.hakansander.currency.model.responseModels.CurrencyDateRangeResponse;
+import com.hakansander.currency.model.responseModels.CurrencyResponse;
 import com.hakansander.currency.service.CurrencyExchangeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,27 +28,29 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
     private final static String QUERY_START_DATE = "start_at={startDate}";
     private final static String QUERY_END_DATE = "end_at={endDate}";
 
-    public CurrencyServiceResponse getCurrencyExchangeValues(String baseCurrency) {
+    public CurrencyResponseDto getCurrencyExchangeValues(String baseCurrency) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance().
                 scheme(SCHEME).host(HOST).
                 path(LATEST_PATH).
                 query(QUERY_BASE_CURRENCY).
                 buildAndExpand(baseCurrency);
+        CurrencyResponse response = currencyServiceCall(uriComponents, baseCurrency);
 
-        return currencyServiceCall(uriComponents, baseCurrency);
+        return CurrencyResponseMapper.mapCurrencyResponse(response);
     }
 
-    public CurrencyServiceResponse getCurrencyExchangeValues(String baseCurrency, String date) {
+    public CurrencyResponseDto getCurrencyExchangeValues(String baseCurrency, String date) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance().
                 scheme(SCHEME).host(HOST).
                 path(DATE_PATH + date).
                 query(QUERY_BASE_CURRENCY).
                 buildAndExpand(baseCurrency);
+        CurrencyResponse response = currencyServiceCall(uriComponents, baseCurrency);
 
-        return currencyServiceCall(uriComponents, baseCurrency);
+        return CurrencyResponseMapper.mapCurrencyResponse(response);
     }
 
-    public CurrencyServiceResponse getCurrencyExchangeValues(String baseCurrency, String date, String targetCurrencies) {
+    public CurrencyResponseDto getCurrencyExchangeValues(String baseCurrency, String date, String targetCurrencies) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance().
                 scheme(SCHEME).host(HOST).
                 path(DATE_PATH + date).
@@ -53,10 +58,12 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
                 query(QUERY_TARGET_CURRENCIES).
                 buildAndExpand(baseCurrency, targetCurrencies);
 
-        return currencyServiceCall(uriComponents, baseCurrency);
+        CurrencyResponse response = currencyServiceCall(uriComponents, baseCurrency);
+
+        return CurrencyResponseMapper.mapCurrencyResponse(response);
     }
 
-    public CurrencyServiceDateRangeResponse getCurrencyExchangeValues(String baseCurrency, CurrencyRangeRequestBody requestBody) {
+    public CurrencyResponseDto getCurrencyExchangeValues(String baseCurrency, CurrencyRangeRequestBody requestBody) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance().
                 scheme(SCHEME).host(HOST).
                 path(DATE_RANGE_PATH).
@@ -68,18 +75,18 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
 
         RestTemplate restTemplate = new RestTemplate();
 
-        CurrencyServiceDateRangeResponse response = null;
+        CurrencyDateRangeResponse response = null;
         try {
-            response = restTemplate.getForObject(uriComponents.toString(), CurrencyServiceDateRangeResponse.class);
+            response = restTemplate.getForObject(uriComponents.toString(), CurrencyDateRangeResponse.class);
         } catch (Exception e) {
             log.error("[currencyServiceCall] Exception occurred.", e);
             throw new CurrencyFormatException("Currency format is invalid for the currency input " + baseCurrency);
         }
 
-        return response;
+        return CurrencyDateRangeResponseMapper.mapCurrencyDateRangeCurrencyResponse(response);
     }
 
-    public CurrencyServiceResponse getCurrencyExchangeValues(String baseCurrency, String startDate, String endDate, boolean dummyFlag) {
+    public CurrencyResponseDto getCurrencyExchangeValues(String baseCurrency, String startDate, String endDate, boolean dummyFlag) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance().
                 scheme(SCHEME).host(HOST).
                 path(DATE_RANGE_PATH).
@@ -88,17 +95,24 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
                 query(QUERY_END_DATE).
                 buildAndExpand(baseCurrency, startDate, endDate);
 
-        return currencyServiceCall(uriComponents, baseCurrency);
-    }
-
-
-
-    private CurrencyServiceResponse currencyServiceCall(UriComponents uriComponents, String baseCurrency) {
         RestTemplate restTemplate = new RestTemplate();
 
-        CurrencyServiceResponse response = null;
+        CurrencyDateRangeResponse response = null;
         try {
-            response = restTemplate.getForObject(uriComponents.toString(), CurrencyServiceResponse.class);
+            response = restTemplate.getForObject(uriComponents.toString(), CurrencyDateRangeResponse.class);
+        } catch (Exception e) {
+            log.error("[currencyServiceCall] Exception occurred.", e);
+            throw new CurrencyFormatException("Currency format is invalid for the currency input " + baseCurrency);
+        }
+        return CurrencyDateRangeResponseMapper.mapCurrencyDateRangeCurrencyResponse(response);
+    }
+
+    private CurrencyResponse currencyServiceCall(UriComponents uriComponents, String baseCurrency) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        CurrencyResponse response = null;
+        try {
+            response = restTemplate.getForObject(uriComponents.toString(), CurrencyResponse.class);
         } catch (Exception e) {
             log.error("[currencyServiceCall] Exception occurred.", e);
             throw new CurrencyFormatException("Currency format is invalid for the currency input " + baseCurrency);
