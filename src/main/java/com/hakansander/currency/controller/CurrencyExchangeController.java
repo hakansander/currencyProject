@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/currency")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class CurrencyExchangeController {
     @Autowired
     CurrencyExchangeService currencyExchangeService;
